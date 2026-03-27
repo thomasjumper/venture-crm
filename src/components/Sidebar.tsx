@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: "⬡" },
-  { href: "/objectives", label: "Objectives", icon: "◎" },
-  { href: "/knowledge", label: "Knowledge Base", icon: "◈" },
+  { href: "/", label: "Dashboard", icon: "\u2B21" },
+  { href: "/objectives", label: "Objectives", icon: "\u25CE" },
+  { href: "/knowledge", label: "Knowledge Base", icon: "\u25C8" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col"
@@ -43,8 +45,42 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-4 border-t text-xs" style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}>
-        AgentBay Internal v0.1
+      <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
+        {user && (
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                {user.display_name}
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                @{user.username}
+              </p>
+            </div>
+            <button
+              onClick={logout}
+              className="text-xs px-3 py-1.5 rounded-md transition-colors"
+              style={{
+                background: "var(--bg-hover)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLButtonElement).style.color = "var(--danger)";
+                (e.target as HTMLButtonElement).style.borderColor = "var(--danger)";
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLButtonElement).style.color = "var(--text-secondary)";
+                (e.target as HTMLButtonElement).style.borderColor = "var(--border)";
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
+        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+          AgentBay Internal v0.1
+        </p>
       </div>
     </aside>
   );

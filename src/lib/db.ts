@@ -1,9 +1,14 @@
 import Database from "better-sqlite3";
 import path from "path";
+import { createHash, randomUUID } from "crypto";
 
 const DB_PATH = path.join(process.cwd(), "venture-crm.db");
 
 let db: Database.Database;
+
+function hashPassword(password: string): string {
+  return createHash("sha256").update(password).digest("hex");
+}
 
 function getDb(): Database.Database {
   if (!db) {
@@ -15,8 +20,19 @@ function getDb(): Database.Database {
   return db;
 }
 
+export { hashPassword, randomUUID };
+
 function initializeDb(db: Database.Database) {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      display_name TEXT,
+      session_token TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS objectives (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -77,6 +93,21 @@ function initializeDb(db: Database.Database) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // Seed default users if none exist
+  const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number };
+  if (userCount.count === 0) {
+    const seedUsers = [
+      { username: "thomasjumper", password: "96969696", display_name: "Thomas Jumper" },
+      { username: "zacharyshaked", password: "96969696", display_name: "Zachary Shaked" },
+    ];
+    const insert = db.prepare(
+      "INSERT INTO users (id, username, password_hash, display_name) VALUES (?, ?, ?, ?)"
+    );
+    for (const user of seedUsers) {
+      insert.run(randomUUID(), user.username, hashPassword(user.password), user.display_name);
+    }
+  }
 }
 
 export default getDb;
