@@ -2,3 +2,5 @@ node_modules/
 .next/
 *.db
 .DS_Store
+venture-crm.db-shm
+venture-crm.db-wal
